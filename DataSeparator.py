@@ -7,10 +7,7 @@ import numpy as np
 #def generateTestTrainCrossover(data_length,testfrac,Nb_runs):
 #    return [generateTestTrainindexes(data_length,testfrac) for i in range(Nb_runs)]
 
-
 class TrainTestGenerator:
-
-    """Iterator that counts upward forever."""
 
     def __init__(self, n_splits,test_size,train_size,data=None,data_length=None):
         self.data_length = data_length
