@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+"""
+Functions used in a machine learning workflow
+implemented for a project at IMT Atlantique
+(Brest ,FRANCE)
+"""
+
+__author__ = "HAMDI Mohamed, KLEIMAN Ilan, OUALI Maher, RAJHI Mohamed"
+
+# imports
 import pandas as pd
 import numpy as np
 from sklearn.exceptions import NotFittedError
