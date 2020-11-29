@@ -17,6 +17,11 @@ class StandardScaler():
     """
         This class applies standard scaling over a dataset, for each sample x it calculates z = (x - m)/s
         Where m is the mean of the given dataset and s its standard deviation
+        
+        Arguments: data = data to be scaled (or reverse scaled)
+        
+        
+        @author:  OUALI Maher
     """
     def __init__(self):
         self.m = None
@@ -26,6 +31,7 @@ class StandardScaler():
         """ This function calculates all means and stds for different features and therefore fitting the scaler on the given data """
         self.m = np.mean(data, axis=0)
         self.s = np.std(data, axis=0)
+        return self
 
     def transform(self, data):
         """ This function scales data samples with correspondance to a list of means and stds """
@@ -74,6 +80,12 @@ class MaxAbsScaler():
     """
         This class applies MaxAbs scaling over a dataset, for each sample x it calculates z = x / maxabs
         Where max is the maximum of all absolute values of a given dataset
+        
+         
+        Arguments: data = data to be scaled (or reverse scaled)
+        
+        
+        @author:  OUALI Maher
     """
     def __init__(self):
         self.maxabs = None
@@ -81,6 +93,7 @@ class MaxAbsScaler():
     def fit(self, data):
         """ This function calculates all maximum absolute values for different features and therefore fitting the scaler on the given data """
         self.maxabs = np.max(np.absolute(data), axis=0)
+        return self
 
     def transform(self, data) -> np.array:
         """ This function scales data samples with correspondance to a list of mins and maxes """
@@ -126,6 +139,11 @@ class MinMaxScaler():
     """
         This class applies minmax scaling over a dataset, for each sample x it calculates z = (x - min)/(min + max)
         Where min is the minimum of the given dataset and max its maximum
+        
+        Arguments: data = data to be scaled (or reverse scaled)
+        
+        
+        @author:  OUALI Maher
     """
     def __init__(self):
         self.min = None
@@ -135,6 +153,7 @@ class MinMaxScaler():
         """ This function calculates all minimum and maximum values for different features and therefore fitting the scaler on the given data """
         self.min = np.min(data, axis=0)
         self.max = np.max(data, axis=0)
+        return self
 
     def transform(self, data) -> np.array:
         """ This function scales data samples with correspondance to a list of mins and maxes """
@@ -179,7 +198,17 @@ class MinMaxScaler():
 
 
 class Normalizer():
-    """This class applies normalization over a dataset"""
+    """This class applies normalization over a dataset
+    
+    
+     
+        Arguments: data = data to be scaled (or reverse scaled)
+                   norm = the norm to be used in the normalization, the accepted norms are 'l2' or 'l1': for 'l2' norm the sum of the square of all scaled samples (over a row)
+                   is equal to 1 where for the 'l1' norm the sum of the absolute value is equal to 1
+        
+        
+        @author:  OUALI Maher
+    """
     def __init__(self, norm='l2'):
         if(norm not in ['l2', 'l1']):
             raise ValueError("norm must be in ['l2', 'l1']")
@@ -187,8 +216,10 @@ class Normalizer():
         self.max = None
 
     def fit(self, data):
+        """ This function fits the scaler over the data by determining the maximum values and the maximum absolute value for each row """
         self.max = np.max(data, axis=1)
         self.maxabs = np.max(np.absolute(data), axis=1)
+        return self
 
     def transform(self, data):
         #check if scaler has been fitted or not
@@ -236,7 +267,13 @@ class Normalizer():
         
 
 class RobustScaler():
-    """ This function applies Robust scaling over a given dataset"""
+    """ This function applies Robust scaling over a given dataset
+     
+        Arguments: data = data to be scaled (or reverse scaled)
+                   quantile_range = the percentage of data (upper, lower) to be used for scaling the data
+        
+        @author:  OUALI Maher
+    """
     def __init__(self, quantile_range=(25, 75):tuple):
         if(quantile_range[0] >= quantile_range[1]):
             raise ValueError("first value of tuple must be stricly smaller than the second tuple value")
@@ -248,10 +285,11 @@ class RobustScaler():
         self.lower_quantile = None
 
     def fit(self, data:np.array):
+        """ This functions fits the scaler over data by determining median values and upper (lower) quantiles in different columns """
         self.median = np.median(data, axis=0)
         self.upper_quantile = np.percentile(data, q=self.quantile_range[1], axis=0)
         self.lower_quantile = np.percentile(data, q=self.quantile_range[0], axis=0)
-        
+        return self
 
     def transform(self, data:np.array) -> np.array:
         #check if scaler has been fitted or not
