@@ -267,6 +267,17 @@ class GridSearchHyperParamsCV:
         self._scores = np.mean(np.array(results), axis=0)
         self._best_score = np.max(self._scores)
         self._best_params = self._grid[np.argmax(self._scores)]
+        # retrain model with the best parameters .
+        self._model = clone(self._model)
+        self._model.set_params(**self._best_params)
+        self._model.fit(X, y)
+
+    def predict(self, X_test):
+        if(self._best_params != None):
+            return self._model.predict(X_test)
+        else:
+            raise NotFittedError("GridSearch for Hyper parameters tuning has not been called yet. call 'fit' method")
+
 
 
 class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
