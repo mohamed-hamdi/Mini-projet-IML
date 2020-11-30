@@ -278,6 +278,12 @@ class GridSearchHyperParamsCV:
         else:
             raise NotFittedError("GridSearch for Hyper parameters tuning has not been called yet. call 'fit' method")
 
+    def score(self, X_test, y_test):
+        if(self._best_params != None):
+            return self._model.score(X_test,y_test)
+        else:
+            raise NotFittedError("GridSearch for Hyper parameters tuning has not been called yet. call 'fit' method")
+
 
 
 class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
