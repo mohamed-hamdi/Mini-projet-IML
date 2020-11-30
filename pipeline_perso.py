@@ -9,7 +9,6 @@ __author__ = "HAMDI Mohamed, KLEIMAN Ilan, OUALI Maher, RAJHI Mohamed"
 
 # imports
 import pandas as pd
-import numpy as np
 import itertools
 import seaborn as sn
 import matplotlib.pyplot as plt
@@ -21,8 +20,10 @@ import random
 import numpy as np
 import numpy.ma as ma
 import numbers
+import warnings
 
 from sklearn.decomposition import PCA
+from sklearn.impute._base import _most_frequent
 from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
 
@@ -42,7 +43,6 @@ def PlotCorrMatrix(data, FigSize=(10, 10)):
     sn.heatmap(abs(corrMatrix), annot=True, cmap=cmap, mask=mask)
     plt.show()
     return
-
 
 def is_scalar_nan(x):
     
@@ -122,12 +122,13 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
         return X.values
 
 
-
 """Implemented by Ilan Kleiman"""
 """Class: generates indexes for separating data into train test set. Implemented as iterator """
+
+
 class TrainTestGenerator:
 
-    def __init__(self, n_splits,test_size=None,train_size=None,data=None,data_length=None):
+    def __init__(self, n_splits, test_size=None, train_size=None, data=None, data_length=None):
 
         """Constructor function for index generator
             Parameters:
@@ -147,7 +148,7 @@ class TrainTestGenerator:
         self.n_splits = n_splits
         self.data = data
         if data is not None:
-                self.data_length = data.shape[0]
+            self.data_length = data.shape[0]
 
     def generateTestTrainindexes(self):
 
@@ -171,11 +172,12 @@ class TrainTestGenerator:
         test_indexes = indexes[train_length:]
 
         return train_indexes, test_indexes
+
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.num!=self.n_splits:
+        if self.num != self.n_splits:
             self.num += 1
             return self.generateTestTrainindexes()
 
@@ -185,13 +187,16 @@ class TrainTestGenerator:
     def split(self):
         return [self.generateTestTrainindexes() for i in range(self.n_splits)]
 
+
 """Implemented by Ilan Kleiman"""
 """Class in charge of standaraizing data and extraction principal components using PCA"""
+
+
 class PreProcessor:
-    def __init__(self,NbComponents=0,retained_variance=0.0):
-        self.NbComponents=NbComponents
+    def __init__(self, NbComponents=0, retained_variance=0.0):
+        self.NbComponents = NbComponents
         self.retained_variance = retained_variance
-        self.scaler=StandardScaler()
+        self.scaler = StandardScaler()
 
         if self.retained_variance == 0.0 and self.NbComponents == 0:
             raise Exception("Wrong configuration of parameters")
@@ -200,19 +205,20 @@ class PreProcessor:
         elif self.NbComponents != 0:
             self.pca = PCA(n_components=self.NbComponents)
 
-    def fit(self,data):
+    def fit(self, data):
         # Standardizing the features
         temp_values = self.scaler.fit_transform(data)
         self.pca.fit(temp_values)
 
-    def transform(self,data):
+    def transform(self, data):
         temp_values = self.scaler.transform(data)
         temp_values = self.pca.transform(temp_values)
         return temp_values
 
-    def fit_transform(self,data):
+    def fit_transform(self, data):
         self.fit(data)
         return self.transform(data)
+
 
 class GridSearchHyperParamsCV:
     """Returns the best hyperparameters for the model and it performance after a grid search .
@@ -430,7 +436,7 @@ class StandardScaler():
     def describe(self):
         if(self.min == None or self.max == None):
             print("This Standard Scaler has not been fitted yet")
-        else
+        else :
             print("This Standard Scaler has been fitted over some data having the following statistics \n\t*Means : {} \n\t*Stds: {}".format(self.m.tolist(), self.s.tolist()))
         
 
@@ -490,7 +496,7 @@ class MaxAbsScaler():
     def describe(self):
         if(self.maxabs == None):
             print("This MaxAbs Scaler has not been fitted yet")
-        else
+        else :
             print("This MaxAbs Scaler has been fitted over some data having the following statistics \n\t*Absolute Maxes : {}".format(self.maxabs.tolist()))
 
 
@@ -552,7 +558,7 @@ class MinMaxScaler():
     def describe(self):
         if(self.min == None or self.max == None):
             print("This MinMax Scaler has not been fitted yet")
-        else
+        else :
             print("This MinMax Scaler has been fitted over some data having the following statistics \n\t*Mins : {} \n\t*Maxes: {}".format(self.min.tolist(), self.max.tolist()))
 
 
@@ -621,7 +627,7 @@ class Normalizer():
     def describe(self):
         if(self.max == None):
             print("This Normalizer has not been fitted yet")
-        else
+        else :
             print("This Normalizer has been fitted over some data having the following statistics \n\t*Maxes: {}".format(self.max.tolist()))
         
 
@@ -633,7 +639,7 @@ class RobustScaler():
         
         @author:  OUALI Maher
     """
-    def __init__(self, quantile_range=(25, 75):tuple):
+    def __init__(self, quantile_range=(25, 75)):
         if(quantile_range[0] >= quantile_range[1]):
             raise ValueError("first value of tuple must be stricly smaller than the second tuple value")
         if(quantile_range[0] <=0 or quantile_range[1] >= 100):
