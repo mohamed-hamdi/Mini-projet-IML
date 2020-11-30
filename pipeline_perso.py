@@ -309,7 +309,7 @@ class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
 
     # Transformer method we wrote for this transformer
     def transform(self, X, y=None):
-        X = pd.DataFrame(X)
+        X = pd.DataFrame(X).convert_dtypes()
         corrMatrix = X.corr(method=self._method)
         corrMatrix = corrMatrix.unstack()
         top_corr = list(corrMatrix[corrMatrix >= self._threshold].index)
