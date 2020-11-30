@@ -317,7 +317,6 @@ class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
         to_drop = []
         to_keep = list(X.columns)
         for e in top_corr:
-            print(e)
             if (e[0] in to_keep) and (e[1] in to_keep) and (e[0] != e[1]):
                 to_drop.append(e[1])
                 to_keep.remove(e[1])
