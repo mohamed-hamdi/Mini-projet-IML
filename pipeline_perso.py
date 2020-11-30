@@ -12,7 +12,7 @@ import pandas as pd
 import itertools
 import seaborn as sn
 import matplotlib.pyplot as plt
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin , clone
 from sklearn.exceptions import NotFittedError
 
 
@@ -251,6 +251,7 @@ class GridSearchHyperParamsCV:
         self._grid = [dict(zip(labels, term)) for term in itertools.product(*terms)]
 
     def model_fit_score(self, Xt, yt, Xv, yv, params):
+        self._model = clone(self._model)
         self._model.set_params(**params)
         self._model.fit(Xt, yt)
         return self._model.score(Xv, yv)
@@ -377,6 +378,44 @@ class CustomImputer(BaseEstimator, TransformerMixin):
             
  
 
+class CustomScaler():
+    """
+           This class applies one of the scaler defined bellow .
+
+           Arguments: data = data to be scaled (or reverse scaled)
+                      Scaler= scaler name to be used. Default value "StandardScaler"
+
+
+
+           @author:  OUALI Maher
+       """
+
+    def __init__(self, scaler_name="StandardScaler"):
+        self.scaler_name = scaler_name
+        if self.scaler_name == "StandardScaler":
+            self.scaler = StandardScaler()
+        elif self.scaler_name == "MaxAbsScaler":
+            self.scaler = MaxAbsScaler()
+        elif self.scaler_name == "MinMaxScaler":
+            self.scaler = MinMaxScaler()
+        elif self.scaler_name == "Normalizer":
+            self.scaler = Normalizer()
+        elif self.scaler_name == "RobustScaler":
+            self.scaler = RobustScaler()
+        else:
+            raise TypeError("Unkown scaler : possible scaler names :{ 'StandardScaler' ,'MaxAbsScaler','MinMaxScaler','Normalizer','RobustScaler'}")
+
+    def fit(self, data):
+        return self.scaler.fit(data)
+
+    def transform(self, data):
+        return self.scaler.transform(data)
+
+    def fit_transform(self, data):
+        return self.scaler.fit_transform(data)
+
+    def reverse_transform(self, data):
+        return self.scaler.reverse_transform(data)
 
 class StandardScaler():
     """
@@ -688,4 +727,3 @@ class RobustScaler():
         for i in range(data.shape[1]):
             result[:,i] = data[:,i] * (self.upper_quantile[i] + self.lower_quantile[i]) + self.median[i] + self.lower_quantile[i]
         return result
-    
