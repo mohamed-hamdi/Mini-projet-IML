@@ -309,19 +309,20 @@ class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
 
     # Transformer method we wrote for this transformer
     def transform(self, X, y=None):
-        X = pd.DataFrame(X).convert_dtypes()
-        corrMatrix = X.corr(method=self._method)
-        corrMatrix = corrMatrix.unstack()
-        top_corr = list(corrMatrix[corrMatrix >= self._threshold].index)
+        if self._dropped_features == None:
+            X = pd.DataFrame(X).convert_dtypes()
+            corrMatrix = X.corr(method=self._method)
+            corrMatrix = corrMatrix.unstack()
+            top_corr = list(corrMatrix[corrMatrix >= self._threshold].index)
 
-        to_drop = []
-        to_keep = list(X.columns)
-        for e in top_corr:
-            if (e[0] in to_keep) and (e[1] in to_keep) and (e[0] != e[1]):
-                to_drop.append(e[1])
-                to_keep.remove(e[1])
-        self._dropped_features = to_drop
-        X = X.drop(to_drop, axis=1)
+            to_drop = []
+            to_keep = list(X.columns)
+            for e in top_corr:
+                if (e[0] in to_keep) and (e[1] in to_keep) and (e[0] != e[1]):
+                    to_drop.append(e[1])
+                    to_keep.remove(e[1])
+            self._dropped_features = to_drop
+        X = X.drop(self._dropped_features, axis=1)
         return X.values
 
 
