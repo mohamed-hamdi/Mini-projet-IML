@@ -44,6 +44,39 @@ def PlotCorrMatrix(data, FigSize=(10, 10)):
     plt.show()
     return
 
+
+def is_scalar_nan(x):
+    """is_scalar_nan(x) is True does not fail.
+    @author : RAJHI Mohamed
+    """
+    return bool(isinstance(x, numbers.Real) and np.isnan(x))
+
+
+def _object_dtype_isnan(X):
+    """@author : RAJHI Mohamed"""
+    return X != X
+
+
+def _get_mask(X, value_to_mask):
+    """Compute the boolean mask X == value_to_mask.
+       @author : RAJHI Mohamed
+    """
+    if is_scalar_nan(value_to_mask):
+        if X.dtype.kind == "f":
+            return np.isnan(X)
+        elif X.dtype.kind in ("i", "u"):
+            # can't have NaNs in integer array.
+            return np.zeros(X.shape, dtype=bool)
+        else:
+            # np.isnan does not work on object dtypes.
+            return _object_dtype_isnan(X)
+    else:
+        return X == value_to_mask
+
+
+
+
+
 class CategoricalTransformer(BaseEstimator, TransformerMixin):
     """Returns data with categorical features handled following a strategy given as argument.
 
@@ -302,32 +335,6 @@ class CustomImputer(BaseEstimator, TransformerMixin):
     def __init__(self, strategy="mean", missing_values=np.nan):
         self.strategy = strategy
         self.missing_values = missing_values
-
-    def is_scalar_nan(x):
-        """is_scalar_nan(x) is True does not fail.
-        @author : RAJHI Mohamed
-        """
-        return bool(isinstance(x, numbers.Real) and np.isnan(x))
-
-    def _object_dtype_isnan(X):
-        """@author : RAJHI Mohamed"""
-        return X != X
-
-    def _get_mask(X, value_to_mask):
-        """Compute the boolean mask X == value_to_mask.
-           @author : RAJHI Mohamed
-        """
-        if is_scalar_nan(value_to_mask):
-            if X.dtype.kind == "f":
-                return np.isnan(X)
-            elif X.dtype.kind in ("i", "u"):
-                # can't have NaNs in integer array.
-                return np.zeros(X.shape, dtype=bool)
-            else:
-                # np.isnan does not work on object dtypes.
-                return _object_dtype_isnan(X)
-        else:
-            return X == value_to_mask
 
     def fit(self, X, y=None):
         return self
