@@ -14,16 +14,37 @@ import itertools
 import seaborn as sn
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, TransformerMixin
-
+from scipy import stats
 import random
 import numpy as np
 import numpy.ma as ma
 import numbers
-
+from scipy import sparse as sp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
+from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
 
+def models_training_using_pipeline(preprocessor,models,X_train,y_train,X_valid,y_valid):
+    """
+    Train the models and print accuracy score of each model
+    PS : models must be a list of tuples
+    @author : Mohamed RAJHI
+    """
+    # evaluate each model in turn
+    results = []
+    names = []
+    for name, model in models:
+        my_pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                            ('model',model)
+                                ])
+        my_pipeline.fit(X_train, y_train)
+        y_pred=my_pipeline.predict(X_valid)
+        print("accuracy score for model : {} is {}".format(name,accuracy_score(y_valid,y_pred)))
+    return
+
+g
 
 def PlotCorrMatrix(data, FigSize=(10, 10)):
     """Plots the correlation matrix .
@@ -42,33 +63,6 @@ def PlotCorrMatrix(data, FigSize=(10, 10)):
     return
 
 
-def is_scalar_nan(x):
-    
-    """is_scalar_nan(x) is True does not fail.
-
-    @author : RAJHI Mohamed
-    """
-    return bool(isinstance(x, numbers.Real) and np.isnan(x))
-
-def _object_dtype_isnan(X):
-    """@author : RAJHI Mohamed"""
-    return X != X
-
-def _get_mask(X, value_to_mask):
-    """Compute the boolean mask X == value_to_mask.
-       @author : RAJHI Mohamed
-    """
-    if is_scalar_nan(value_to_mask):
-        if X.dtype.kind == "f":
-            return np.isnan(X)
-        elif X.dtype.kind in ("i", "u"):
-            # can't have NaNs in integer array.
-            return np.zeros(X.shape, dtype=bool)
-        else:
-            # np.isnan does not work on object dtypes.
-            return _object_dtype_isnan(X)
-    else:
-        return X == value_to_mask
 
 
 
@@ -98,7 +92,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
 
     # Transformer method we wrote for this transformer
     def transform(self, X, y=None):
-        X = pd.DataFrame(X).convert_dtypes()
+        X = pd.DataFrame(X)
         if self._categorical_vars is None:
             self._categorical_vars = list(X.select_dtypes(include=['string']).columns)
         for col in self._categorical_vars:
@@ -283,7 +277,7 @@ class FeatureSelectorCorr(BaseEstimator, TransformerMixin):
 
     # Transformer method we wrote for this transformer
     def transform(self, X, y=None):
-        X = pd.DataFrame(X)
+        X = pd.DataFrame(X).convert_dtypes()
         corrMatrix = X.corr(method=self._method)
         corrMatrix = corrMatrix.unstack()
         top_corr = list(corrMatrix[corrMatrix >= self._threshold].index)
@@ -310,62 +304,28 @@ class CustomImputer(BaseEstimator, TransformerMixin):
         self.missing_values=missing_values
     
     
-    
+    #function to fit our data
     def fit(self, X, y=None):
         return self
     
    
-    
+    #function to transform our data
     def transform(self, X):
-               
-                X=np.array(X)
-                mask = _get_mask(X, self.missing_values)
-                masked_X = ma.masked_array(X, mask=mask)
-
+                
+                # X = pd.DataFrame(X).convert_dtypes()
                 # Mean
+                import numpy as np
                 if self.strategy == "mean":
-                    mean_masked = np.ma.mean(masked_X, axis=0)
-                    mean = np.ma.getdata(mean_masked)
-                    mean[np.ma.getmask(mean_masked)] = np.nan
-                    statistics =mean
+                    X=X.apply(lambda x:x.fillna(x.mean()))
                 # Most frequent
                 elif self.strategy == "most_frequent":
-                    X = X.transpose()
-                    mask = mask.transpose()
-
-                    if X.dtype.kind == "O":
-                        most_frequent = np.empty(X.shape[0], dtype=object)
-                    else:
-                        most_frequent = np.empty(X.shape[0])
-
-                    for i, (row, row_mask) in enumerate(zip(X[:], mask[:])):
-                        row_mask = np.logical_not(row_mask).astype(np.bool)
-                        row = row[row_mask]
-                        most_frequent[i] = _most_frequent(row, np.nan, 0)
-                    statistics = most_frequent
+                    X=X.apply(lambda x:x.fillna(x.value_counts().index[0]))
+                if self.strategy == "median":
+                    X=X.apply(lambda x:x.fillna(x.median()))
                 
-                #handling invalid mask
-                invalid_mask = _get_mask(statistics, np.nan)
-                valid_mask = np.logical_not(invalid_mask)
-                valid_statistics = statistics[valid_mask]
-                valid_statistics_indexes = np.flatnonzero(valid_mask)
 
-                if invalid_mask.any():
-                    missing = np.arange(X.shape[1])[invalid_mask]
-                    if self.verbose:
-                        warnings.warn("Deleting features without "
-                                      "observed values: %s" % missing)
-                    X = X[:, valid_statistics_indexes]
-
-                # Do actual imputation
-          
-                mask = _get_mask(X, self.missing_values)
-                n_missing = np.sum(mask, axis=0)
-                values = np.repeat(valid_statistics, n_missing)
-                coordinates = np.where(mask.transpose())[::-1]
-
-                X[coordinates] = values
-                return X
+               
+                return X.values
             
  
 
