@@ -750,9 +750,9 @@ class RobustScaler():
         result = np.zeros(data.shape)
         for i in range(data.shape[1]):
             if((self.upper_quantile[i] + self.lower_quantile[i]) != 0):
-                result[:,i] = (data[:,i] - self.median[i] - self.lower_quantile[i]) / (self.upper_quantile[i] + self.lower_quantile[i])
+                result[:,i] = (data[:,i] - self.median[i]) / (self.upper_quantile[i] - self.lower_quantile[i])
             else:
-                result[:,i] = (data[:,i] - self.median[i] - self.lower_quantile[i])
+                result[:,i] = (data[:,i] - self.median[i])
         return result
 
     def fit_transform(self, data:np.array) -> np.array:
@@ -769,5 +769,5 @@ class RobustScaler():
         #apply reverse transformation or raise value error
         result = np.zeros(data.shape)
         for i in range(data.shape[1]):
-            result[:,i] = data[:,i] * (self.upper_quantile[i] + self.lower_quantile[i]) + self.median[i] + self.lower_quantile[i]
+            result[:,i] = data[:,i] * (self.upper_quantile[i] - self.lower_quantile[i]) + self.median[i]
         return result
