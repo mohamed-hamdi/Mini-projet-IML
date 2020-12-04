@@ -14,6 +14,16 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, TransformerMixin , clone
 from sklearn.exceptions import NotFittedError
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from catboost import CatBoostClassifier
+from sklearn.metrics import *
+from sklearn.model_selection import KFold
+from sklearn.pipeline import Pipeline
+
 
 
 import random
@@ -25,10 +35,74 @@ from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
 
 
+def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', verbose=0):
+    """GridSearch with CV using 'class GridSearchHyperParamsCV'  for several models and retrain the best model and evaluate on test set
+
+
+       Arguments : X_train, y_train, X_test, y_test = train and test data
+                   metric = metric chosen for the evaluation.Possible values are : ['accuracy','recall','precision',f1_score']
+                   verbose = if > 0 plot evaluation of every type od model with best parameters
+
+       @author : HAMDI Mohamed
+       """
+
+    kf = KFold(n_splits=4, random_state=None, shuffle=True)
+    models = []
+    trained_models = []
+    metrics = []
+    best_params = []
+
+    models.append(('LogisticRegression', LogisticRegression(), {'C': [0.001, .009, 0.01, .09, 1, 5, 10, 25]}))
+    models.append(('SVM', SVC(), {'C': [0.1, 1, 10], 'gamma': ['auto','scale'], 'kernel': ['rbf']}))
+    models.append(('KNN', KNeighborsClassifier(),
+                   {'n_neighbors': [4, 5, 6, 7], 'leaf_size': [1, 3, 5], 'weights': ['uniform', 'distance'],
+                    'n_jobs': [-1]}))
+    models.append(('DecisionTree', DecisionTreeClassifier(),
+                   {'min_samples_split': range(10, 500, 20), 'max_depth': range(1, 20, 2),
+                    'criterion': ['gini', 'entropy']}))
+    models.append(('RandomForestClassifier', RandomForestClassifier(),
+                   {'n_estimators': [200, 500], 'max_features': ['auto', 'log2'], 'max_depth': [4, 5, 6, 7, 8],
+                    'criterion': ['gini', 'entropy']}))
+    models.append(('CATBOOST', CatBoostClassifier(),
+                   {'depth': [6, 8, 10], 'learning_rate': [0.01, 0.05, 0.1], 'iterations': [30, 50, 100],
+                    'silent': [True]}))
+
+    for name, model, params in models:
+        grid_perso = GridSearchHyperParamsCV(model=model, parameters=params, cv_splitter=kf, n_jobs=-1, verbose=0,
+                                             scoring=metric)
+        pipe_perso = Pipeline(
+            [('imputer', CustomImputer()), ('cat_trans', CategoricalTransformer(strategy='ordinal_encoding')),
+             ('grid_perso', grid_perso)])
+        pipe_perso.fit(X_train, y_train)
+
+        trained_models.append(pipe_perso)
+        metrics.append(pipe_perso.score(X_test, y_test))
+        best_params.append(pipe_perso['grid_perso']._best_params)
+        y_pred = pipe_perso.predict(X_test)
+        if verbose > 0:
+            print("{} score for model : {} is {}".format(metric, name, pipe_perso.score(X_test, y_test)))
+            print("best parameters for model : {} are {}".format(name, pipe_perso['grid_perso']._best_params))
+            print(classification_report(y_test, y_pred))
+
+    index = np.argmax(np.array(metrics))
+    best_model = trained_models[index]
+    best_score = metrics[index]
+    best_param = best_params[index]
+    best_model_name = models[index][0]
+
+    y_pred = best_model.predict(X_test)
+    print('#############################################################################')
+    print('BEST MODEL : ')
+    print("{} score for model : {} is {}".format(metric, best_model_name, best_score))
+    print("best parameters for model : {} are {}".format(best_model_name, best_param))
+    print(classification_report(y_test, y_pred))
+
+    return best_model, best_model_name, best_param, best_score
+
 def PlotCorrMatrix(data, FigSize=(10, 10)):
     """Plots the correlation matrix .
 
-    Arguments and function description
+    Arguments data = data
 
     @author : HAMDI Mohamed
     """
@@ -201,7 +275,7 @@ class GridSearchHyperParamsCV:
     """
 
     # Class constructor method that takes in a list of values as its argument
-    def __init__(self, model, cv_splitter, parameters, n_jobs, verbose):
+    def __init__(self, model, cv_splitter, parameters, n_jobs, verbose , scoring='accuracy'):
         self._model = model
         self._cv_splitter = cv_splitter
         self._parameters = parameters
@@ -211,6 +285,7 @@ class GridSearchHyperParamsCV:
         self._best_params = None
         self._best_score = None
         self._grid = None
+        self._scoring = scoring
 
     def create_grid(self):
         labels, terms = zip(*self._parameters.items())
@@ -220,7 +295,17 @@ class GridSearchHyperParamsCV:
         self._model = clone(self._model)
         self._model.set_params(**params)
         self._model.fit(Xt, yt)
-        return self._model.score(Xv, yv)
+        score=0
+        yp = self._model.predict(Xv)
+        if self._scoring == 'accuracy':
+            score = accuracy_score(yv, yp)
+        elif self._scoring == 'precision':
+            score = precision_score(yv, yp)
+        elif self._scoring == 'recall':
+            score = recall_score(yv, yp)
+        elif self._scoring == 'f1_score':
+            score = f1_score(yv, yp)
+        return score
 
     def fit(self, X, y):
         self.create_grid()
@@ -246,7 +331,17 @@ class GridSearchHyperParamsCV:
 
     def score(self, X_test, y_test):
         if(self._best_params != None):
-            return self._model.score(X_test,y_test)
+            score = 0
+            y_pred = self._model.predict(X_test)
+            if self._scoring == 'accuracy':
+                score = accuracy_score(y_test,y_pred)
+            elif self._scoring == 'precision':
+                score = precision_score(y_test,y_pred)
+            elif self._scoring == 'recall':
+                score = recall_score(y_test,y_pred)
+            elif self._scoring == 'f1_score':
+                score = f1_score(y_test,y_pred)
+            return score
         else:
             raise NotFittedError("GridSearch for Hyper parameters tuning has not been called yet. call 'fit' method")
 
