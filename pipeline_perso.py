@@ -484,7 +484,7 @@ class StandardScaler():
     def transform(self, data):
         """ This function scales data samples with correspondance to a list of means and stds """
         #check if scaler has been fitted or not
-        if(self.m == None or self.s == None):
+        if(self.m is None or self.s is None):
             raise NotFittedError("Standard Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.m) != data.shape[1]):
@@ -505,7 +505,7 @@ class StandardScaler():
 
     def reverse_transform(self, data):
         #check if scaler has been fitted or not
-        if(self.m == None or self.s == None):
+        if(self.m is None or self.s is None):
             raise NotFittedError("Standard Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.m) != data.shape[1]):
@@ -517,7 +517,7 @@ class StandardScaler():
         return result
 
     def describe(self):
-        if(self.min == None or self.max == None):
+        if(self.min is None or self.max is None):
             print("This Standard Scaler has not been fitted yet")
         else :
             print("This Standard Scaler has been fitted over some data having the following statistics \n\t*Means : {} \n\t*Stds: {}".format(self.m.tolist(), self.s.tolist()))
@@ -546,7 +546,7 @@ class MaxAbsScaler():
     def transform(self, data) -> np.array:
         """ This function scales data samples with correspondance to a list of mins and maxes """
         #check if scaler has been fitted or not
-        if(self.maxabs == None):
+        if(self.maxabs is None):
             raise NotFittedError("MaxAbs Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.maxabs) != data.shape[1]):
@@ -565,7 +565,7 @@ class MaxAbsScaler():
 
     def reverse_transform(self, data) -> np.array:
         #check if scaler has been fitted or not
-        if(self.maxabs == None):
+        if(self.maxabs is None):
             raise NotFittedError("MaxAbs Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.maxabs) != data.shape[1]):
@@ -577,7 +577,7 @@ class MaxAbsScaler():
         return result
 
     def describe(self):
-        if(self.maxabs == None):
+        if(self.maxabs is None):
             print("This MaxAbs Scaler has not been fitted yet")
         else :
             print("This MaxAbs Scaler has been fitted over some data having the following statistics \n\t*Absolute Maxes : {}".format(self.maxabs.tolist()))
@@ -627,7 +627,7 @@ class MinMaxScaler():
 
     def reverse_transform(self, data) -> np.array:
         #check if scaler has been fitted or not
-        if(self.min == None or self.max == None):
+        if(self.min is None or self.max is None):
             raise NotFittedError("MinMax Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.max) != data.shape[1]):
@@ -639,7 +639,7 @@ class MinMaxScaler():
         return result
 
     def describe(self):
-        if(self.min == None or self.max == None):
+        if(self.min is None or self.max is None):
             print("This MinMax Scaler has not been fitted yet")
         else :
             print("This MinMax Scaler has been fitted over some data having the following statistics \n\t*Mins : {} \n\t*Maxes: {}".format(self.min.tolist(), self.max.tolist()))
@@ -671,7 +671,7 @@ class Normalizer():
 
     def transform(self, data):
         #check if scaler has been fitted or not
-        if(self.max == None):
+        if(self.max is None):
             raise NotFittedError("Normalizer not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.max) != data.shape[0]):
@@ -695,7 +695,7 @@ class Normalizer():
 
     def reverse_transform(self, data):
         #check if scaler has been fitted or not
-        if(self.max == None):
+        if(self.max is None):
             raise NotFittedError("Normalizer not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.max) != data.shape[0]):
@@ -708,7 +708,7 @@ class Normalizer():
         return result
 
     def describe(self):
-        if(self.max == None):
+        if(self.max is None):
             print("This Normalizer has not been fitted yet")
         else :
             print("This Normalizer has been fitted over some data having the following statistics \n\t*Maxes: {}".format(self.max.tolist()))
@@ -741,7 +741,7 @@ class RobustScaler():
 
     def transform(self, data:np.array) -> np.array:
         #check if scaler has been fitted or not
-        if(self.median == None or self.upper_quantile == None or self.lower_quantile == None):
+        if(self.median is None or self.upper_quantile is None or self.lower_quantile is None):
             raise NotFittedError("Robust Scaler not fitted yet. Call either 'fit' or 'fit_transform' in order to fit data")
         #check if data has the same shape as the parameters
         if(len(self.median) != data.shape[1]):
