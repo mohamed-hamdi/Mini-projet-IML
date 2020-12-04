@@ -500,8 +500,8 @@ class StandardScaler():
 
     def fit_transform(self, data):
         """ This function applies the fitting and transformation at the same time """
-        self.fit(self, data)
-        return self.transform(self, data)
+        self.fit( data)
+        return self.transform( data)
 
     def reverse_transform(self, data):
         #check if scaler has been fitted or not
@@ -560,8 +560,8 @@ class MaxAbsScaler():
 
     def fit_transform(self, data) -> np.array:
         """ This function applies the fitting and transformation at the same time """
-        self.fit(self, data)
-        return self.transform(self, data)
+        self.fit( data)
+        return self.transform( data)
 
     def reverse_transform(self, data) -> np.array:
         #check if scaler has been fitted or not
@@ -622,8 +622,8 @@ class MinMaxScaler():
 
     def fit_transform(self, data) -> np.array:
         """ This function applies the fitting and transformation at the same time """
-        self.fit(self, data)
-        return self.transform(self, data)
+        self.fit(data)
+        return self.transform(data)
 
     def reverse_transform(self, data) -> np.array:
         #check if scaler has been fitted or not
