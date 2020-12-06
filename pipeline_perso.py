@@ -71,7 +71,7 @@ def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', ve
         grid_perso = GridSearchHyperParamsCV(model=model, parameters=params, cv_splitter=kf, n_jobs=-1, verbose=0,
                                              scoring=metric)
         pipe_perso = Pipeline(
-            [('imputer', CustomImputer()), ('cat_trans', CategoricalTransformer(strategy='ordinal_encoding')),
+            [('imputer', CustomImputer()), ('cat_trans', CategoricalTransformer(strategy='label_encoding')),
              ('grid_perso', grid_perso)])
         pipe_perso.fit(X_train, y_train)
 
@@ -120,7 +120,7 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
     """Returns data with categorical features handled following a strategy given as argument.
 
     Arguments : strategy = Defines the strategy used to encode categorical features.Possible values :
-                           "one_hot_encoding", "ordinal_encoding", "target_encoding".
+                           "one_hot_encoding", "label_encoding","ordinal_encoding", "target_encoding".
                 categorical_cols_names = Defines the categorical features that will be encoded.
                                          If this argument is not given, the categorical features will
                                          be detected automatically .
@@ -129,8 +129,8 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
     """
 
     # Class constructor method that takes in a list of values as its argument
-    def __init__(self, strategy, categorical_cols_names=None):
-        self._replacement_dict = {}
+    def __init__(self, strategy, categorical_cols_names=None,_replacement_dict={}):
+        self._replacement_dict = _replacement_dict
         self._strategy = strategy
         self._categorical_vars = categorical_cols_names
 
@@ -149,10 +149,15 @@ class CategoricalTransformer(BaseEstimator, TransformerMixin):
                 aux = pd.get_dummies(X[col], prefix=col)
                 X = pd.concat([X, aux], axis=1)
                 X = X.drop([col], axis=1)
-            if self._strategy == "ordinal_encoding":
+            if self._strategy == "label_encoding":
                 replacement_dic = {categories[i]: i for i in range(len(categories))}
                 X[col] = X[col].replace(replacement_dic)
                 self._replacement_dict[col] = replacement_dic
+            if self._strategy == "ordinal_encoding":
+                if self._replacement_dict != {}:
+                    X[col] = X[col].replace(self._replacement_dict[col])
+                else:
+                    raise NotFittedError("You must specify an order for your categorical variable")
             if self._strategy == "target_encoding":
                 aux = pd.DataFrame({'col': X[col], 'target': y})
                 aux = aux.groupby('col').mean(numeric_only=False)
