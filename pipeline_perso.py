@@ -43,7 +43,7 @@ def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', ve
                    metric = metric chosen for the evaluation.Possible values are : ['accuracy','recall','precision',f1_score']
                    verbose = if > 0 plot evaluation of every type od model with best parameters
 
-       @author : HAMDI Mohamed
+       @author : HAMDI Mohamed & RAJHI Mohamed 
        """
 
     kf = KFold(n_splits=4, random_state=None, shuffle=True)
