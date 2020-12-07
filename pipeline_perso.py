@@ -35,13 +35,14 @@ from sklearn.preprocessing import StandardScaler
 from joblib import Parallel, delayed
 
 
-def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', verbose=0):
+def train_get_best_model(X_train, y_train, X_test, y_test,encoding='label_encoding', metric='accuracy', verbose=0):
     """GridSearch with CV using 'class GridSearchHyperParamsCV'  for several models and retrain the best model and evaluate on test set
 
 
        Arguments : X_train, y_train, X_test, y_test = train and test data
                    metric = metric chosen for the evaluation.Possible values are : ['accuracy','recall','precision',f1_score']
                    verbose = if > 0 plot evaluation of every type od model with best parameters
+                   encoding = encoding strategy for categorical features . Default value : 'label_encoding'
 
        @author : HAMDI Mohamed & RAJHI Mohamed 
        """
@@ -53,9 +54,9 @@ def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', ve
     best_params = []
 
     models.append(('LogisticRegression', LogisticRegression(), {'C': [0.001, .009, 0.01, .09, 1, 5, 10, 25]}))
-    models.append(('SVM', SVC(), {'C': [1, 10,100,200,500], 'gamma': ['auto','scale'], 'kernel': ['rbf']}))
+    models.append(('SVM', SVC(), {'C': [1, 10,100,500,1000], 'gamma': ['auto','scale'], 'kernel': ['rbf']}))
     models.append(('KNN', KNeighborsClassifier(),
-                   {'n_neighbors': [4, 5, 6, 7], 'leaf_size': [1, 3, 5,30], 'weights': ['uniform', 'distance'],
+                   {'n_neighbors': [5, 6, 7,10], 'leaf_size': [5,30,50], 'weights': ['uniform', 'distance'],
                     'n_jobs': [-1]}))
     models.append(('DecisionTree', DecisionTreeClassifier(),
                    {'min_samples_split': range(10, 500, 20), 'max_depth': range(1, 20, 2),
@@ -71,7 +72,7 @@ def train_get_best_model(X_train, y_train, X_test, y_test, metric='accuracy', ve
         grid_perso = GridSearchHyperParamsCV(model=model, parameters=params, cv_splitter=kf, n_jobs=-1, verbose=0,
                                              scoring=metric)
         pipe_perso = Pipeline(
-            [('imputer', CustomImputer()), ('cat_trans', CategoricalTransformer(strategy='one_hot_encoding')),
+            [('imputer', CustomImputer()), ('cat_trans', CategoricalTransformer(strategy=encoding)),
              ('grid_perso', grid_perso)])
         pipe_perso.fit(X_train, y_train)
 
