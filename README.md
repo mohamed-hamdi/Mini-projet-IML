@@ -11,6 +11,9 @@ The goal behind this project is to enhance our collaborative working capabilitie
 files : 
 
 **pipeline_perso.py : utility .py file containig our classes and functions 
+
 **ML_Project_Exploratory_Data_Analysis.ipynb  : Exploratory Data Analysis notebook for both data sets 
+
 **workflow for Chronic Kidney Disease Data Set.ipynb : workflow notebook  for Chronic Kidney Disease Data Set
+
 **workflow for banknote authentication Data Set.ipynb : workflow notebook for banknote authentication Data Set
